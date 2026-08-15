@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Environment & secrets
+.env
+.env.local
+.env.example
+atlas-credentials.env
+server/.env
+
+# Build output
+dist/
+client/dist/
+
+# Dev / project notes (not part of repo structure)
+TRD
+Todo
+TripVault_Week1_Task.pdf
+server/nodemon.json
+
+# Vite defaults (not part of app structure)
+client/src/assets/
+
+# OS & logs
+.DS_Store
+*.log
