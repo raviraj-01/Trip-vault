@@ -39,26 +39,10 @@ function Login() {
     >
       <form onSubmit={handleSubmit} className="form">
         <label htmlFor="email">Email</label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          value={values.email}
-          onChange={handleChange}
-          required
-          autoComplete="email"
-        />
+        <input id="email" name="email" type="email" value={values.email} onChange={handleChange} required autoComplete="email" />
 
         <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          value={values.password}
-          onChange={handleChange}
-          required
-          autoComplete="current-password"
-        />
+        <input id="password" name="password" type="password" value={values.password} onChange={handleChange} required autoComplete="current-password" />
 
         <button type="submit" className="btn btn-primary" disabled={loading}>
           {loading ? "Signing in..." : "Log in"}

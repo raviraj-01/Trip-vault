@@ -1,6 +1,6 @@
 # TripVault
 
-Full-stack MERN authentication app with secure registration, login, JWT-protected routes, and a React dashboard.
+Full-stack MERN app with JWT authentication (Week 1) and trip management CRUD (Week 2).
 
 ## Project structure
 
@@ -9,14 +9,14 @@ tripvault/
 ├── client/              ← React (Vite) frontend
 │   ├── src/
 │   │   ├── pages/       ← Login.jsx, Register.jsx, Dashboard.jsx
-│   │   ├── components/
+│   │   ├── components/  ← TripCard, TripForm, ProtectedRoute, api.js
 │   │   └── App.jsx
 ├── server/              ← Node + Express backend
-│   ├── models/          ← User.js (Mongoose schema)
-│   ├── routes/          ← auth.js
+│   ├── models/          ← User.js, Trip.js
+│   ├── routes/          ← auth.js, trips.js
 │   ├── middleware/      ← authMiddleware.js
 │   ├── .env             ← MONGO_URI, JWT_SECRET
-│   └── index.js         ← Entry point
+│   └── index.js
 └── README.md
 ```
 
@@ -74,7 +74,7 @@ npm run dev
 - Backend: `http://localhost:5000`
 - Frontend: `http://localhost:5173`
 
-## API routes
+## Week 1 — Authentication
 
 | Method | Route                | Description                     |
 | ------ | -------------------- | ------------------------------- |
@@ -82,14 +82,40 @@ npm run dev
 | POST   | `/api/auth/login`    | Log in and receive a JWT        |
 | GET    | `/api/auth/me`       | Get current user (Bearer token) |
 
-## Test the auth flow
+1. Register → Login → Dashboard
+2. JWT is stored in `localStorage` and attached automatically to every API request via an axios interceptor
 
-1. Open `http://localhost:5173`.
-2. Go to **Register**, create an account with name, email, and password (min 6 chars).
-3. You should be redirected to **Login**.
-4. Sign in with the same email and password.
-5. You should land on **Dashboard** and see your name.
-6. Click **Log out** to clear the token and return to login.
+## Week 2 — Trip management
+
+All trip routes require a valid JWT. Users can only access their own trips.
+
+| Method | Route             | Description                              |
+| ------ | ----------------- | ---------------------------------------- |
+| POST   | `/api/trips`      | Create a trip (user set server-side)     |
+| GET    | `/api/trips`      | List current user's trips                |
+| GET    | `/api/trips/:id`  | Get one trip (403 if not owner)          |
+| PUT    | `/api/trips/:id`  | Update trip (403 if not owner)           |
+| DELETE | `/api/trips/:id`  | Delete trip (403 if not owner)           |
+
+### Trip fields
+
+- **Required:** `title`, `destination`
+- **Optional:** `startDate`, `endDate`, `description`, `rating` (1–5)
+
+### Dashboard features
+
+- Loading, error, empty, and loaded states
+- Trip cards with title, destination, dates, and star rating
+- Create / edit modal form (shared `TripForm` component)
+- Delete with confirmation
+- List refreshes automatically after create, edit, or delete
+
+### Test ownership isolation
+
+1. Register **User A** and create a trip. Note the trip ID from the network tab if needed.
+2. Log out, register **User B**, and log in.
+3. User B's dashboard should show an empty list (not User A's trips).
+4. If User B calls `GET /api/trips/:id` with User A's trip ID → **403 Forbidden**.
 
 ## Tech stack
 

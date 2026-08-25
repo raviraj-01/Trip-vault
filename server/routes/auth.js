@@ -2,11 +2,9 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const authMiddleware = require("../middleware/authMiddleware");
+const asyncHandler = require("../middleware/asyncHandler");
 
 const router = express.Router();
-
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
 
 const handleMongoError = (error, res, fallback) => {
   if (error.code === 11000) {
@@ -14,16 +12,15 @@ const handleMongoError = (error, res, fallback) => {
   }
 
   if (error.name === "ValidationError") {
-    const message = Object.values(error.errors)
-      .map((err) => err.message)
-      .join(", ");
-    return res.status(400).json({ message });
+    return res.status(400).json({
+      message: Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", "),
+    });
   }
 
   return res.status(500).json({ message: fallback });
 };
-
-const signToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
 router.post(
   "/register",
@@ -63,16 +60,15 @@ router.post(
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    return res.json({ token: signToken(user._id) });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    return res.json({ token });
   })
 );
 
-router.get("/me", authMiddleware, (req, res) =>
-  res.json({
-    id: req.user._id,
-    name: req.user.name,
-    email: req.user.email,
-  })
+router.get(
+  "/me",
+  authMiddleware,
+  (req, res) => res.json({ id: req.user._id, name: req.user.name, email: req.user.email })
 );
 
 module.exports = router;

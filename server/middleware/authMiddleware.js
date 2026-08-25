@@ -1,8 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-
-const asyncHandler = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
+const asyncHandler = require("./asyncHandler");
 
 const authMiddleware = asyncHandler(async (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];

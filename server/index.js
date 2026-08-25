@@ -4,6 +4,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const authRoutes = require("./routes/auth");
+const tripRoutes = require("./routes/trips");
 
 const { MONGO_URI, JWT_SECRET, PORT = 5000 } = process.env;
 
@@ -22,6 +23,7 @@ app.use(
 );
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+app.use("/api/trips", tripRoutes);
 
 app.use((_req, res) => res.status(404).json({ message: "Route not found" }));
 
