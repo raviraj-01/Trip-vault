@@ -12,6 +12,8 @@ export const getApiError = (error, fallback) =>
 const api = axios.create({ baseURL: "http://localhost:5000" });
 
 api.interceptors.request.use((config) => {
+  if (config.skipAuth) return config;
+
   const token = getToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
@@ -20,7 +22,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) clearToken();
+    if (error.response?.status === 401 && !error.config?.skipAuth) clearToken();
     return Promise.reject(error);
   }
 );

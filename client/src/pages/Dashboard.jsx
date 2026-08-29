@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api, { clearToken, getApiError } from "../components/api";
+import ProfileForm from "../components/ProfileForm";
 import TripCard from "../components/TripCard";
 import TripForm from "../components/TripForm";
 
@@ -20,6 +21,7 @@ function Dashboard() {
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [activeTrip, setActiveTrip] = useState(undefined);
+  const [editingProfile, setEditingProfile] = useState(false);
 
   const fetchTrips = useCallback(async () => {
     const { data } = await api.get("/api/trips");
@@ -75,6 +77,14 @@ function Dashboard() {
           <p className="subtitle">Welcome back, {user.name}. Manage your trips below.</p>
         </div>
         <div className="header-actions">
+          {user.username && (
+            <Link to={`/profile/${user.username}`} className="btn btn-secondary">
+              My Profile
+            </Link>
+          )}
+          <button type="button" className="btn btn-secondary" onClick={() => setEditingProfile(true)}>
+            Edit Profile
+          </button>
           <button type="button" className="btn btn-primary" onClick={() => setActiveTrip(null)}>
             + New trip
           </button>
@@ -107,10 +117,11 @@ function Dashboard() {
             <TripCard
               key={trip._id}
               trip={trip}
+              onOpen={(selected) => navigate(`/trips/${selected._id}`)}
               onEdit={setActiveTrip}
-              onDelete={(trip) => {
-                if (!window.confirm(`Delete "${trip.title}"? This cannot be undone.`)) return;
-                runTripAction(() => api.delete(`/api/trips/${trip._id}`), "Failed to delete trip.");
+              onDelete={(selected) => {
+                if (!window.confirm(`Delete "${selected.title}"? This cannot be undone.`)) return;
+                runTripAction(() => api.delete(`/api/trips/${selected._id}`), "Failed to delete trip.");
               }}
             />
           ))}
@@ -125,6 +136,17 @@ function Dashboard() {
             refreshTrips();
           }}
           onCancel={() => setActiveTrip(undefined)}
+        />
+      )}
+
+      {editingProfile && (
+        <ProfileForm
+          user={user}
+          onSuccess={(updated) => {
+            setUser((prev) => ({ ...prev, ...updated }));
+            setEditingProfile(false);
+          }}
+          onCancel={() => setEditingProfile(false)}
         />
       )}
     </DashboardShell>

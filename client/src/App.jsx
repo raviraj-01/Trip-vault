@@ -3,7 +3,9 @@ import { getToken } from "./components/api";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 import Register from "./pages/Register";
+import TripDetail from "./pages/TripDetail";
 
 function Home() {
   if (getToken()) return <Navigate to="/dashboard" replace />;
@@ -32,11 +34,20 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/profile/:username" element={<Profile />} />
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/trips/:id"
+        element={
+          <ProtectedRoute>
+            <TripDetail />
           </ProtectedRoute>
         }
       />

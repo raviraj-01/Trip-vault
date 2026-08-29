@@ -1,124 +1,143 @@
 # TripVault
 
-Full-stack MERN app with JWT authentication (Week 1) and trip management CRUD (Week 2).
+A full-stack MERN travel memory journal where users can log trips, upload photos, and share their travel journey through a public profile.
 
-## Project structure
+Built as part of the CodGen Virtual Internship Program, Full Stack MERN track.
 
-```
+## Features
+
+- **Authentication**: Register and log in with JWT, with passwords hashed using bcrypt.
+- **Trip Management**: Create, view, edit, and delete personal trips.
+- **Photo Uploads**: Attach cover images and photo galleries to trips via Cloudinary.
+- **Public Profiles**: Shareable `/profile/:username` pages showing a user's trips, with no login required to view.
+
+## Tech Stack
+
+**Backend:** Node.js, Express, MongoDB, Mongoose, JWT, bcryptjs, Multer, Cloudinary
+
+**Frontend:** React, Vite, React Router, Axios
+
+## Project Structure
+
+```text
 tripvault/
-├── client/              ← React (Vite) frontend
+├── client/                 # React (Vite) frontend
 │   ├── src/
-│   │   ├── pages/       ← Login.jsx, Register.jsx, Dashboard.jsx
-│   │   ├── components/  ← TripCard, TripForm, ProtectedRoute, api.js
-│   │   └── App.jsx
-├── server/              ← Node + Express backend
-│   ├── models/          ← User.js, Trip.js
-│   ├── routes/          ← auth.js, trips.js
-│   ├── middleware/      ← authMiddleware.js
-│   ├── .env             ← MONGO_URI, JWT_SECRET
+│   │   ├── pages/          # Login, Register, Dashboard, Profile, TripDetail
+│   │   ├── components/     # TripCard, ProtectedRoute, forms, API helper
+│   │   ├── App.jsx
+│   │   └── main.jsx
+├── server/                 # Node + Express backend
+│   ├── middleware/         # authMiddleware.js, upload.js
+│   ├── models/             # User.js, Trip.js
+│   ├── routes/             # auth.js, trips.js, users.js
+│   ├── .env                # not committed
 │   └── index.js
 └── README.md
 ```
 
-## Prerequisites
+## Setup Instructions
 
-- Node.js 18+
-- MongoDB Atlas cluster (or local MongoDB)
+### Prerequisites
 
-## Environment variables
+- Node.js installed
+- MongoDB Atlas account
+- Cloudinary account
 
-Create `server/.env` with:
+### 1. Clone the repo
 
-| Variable     | Description                        |
-| ------------ | ---------------------------------- |
-| `MONGO_URI`  | MongoDB connection string          |
-| `JWT_SECRET` | Secret key used to sign JWT tokens |
-| `PORT`       | Backend port (default: `5000`)     |
-
-Example:
-
-```env
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/tripvault?retryWrites=true&w=majority
-JWT_SECRET=replace_with_a_long_random_secret
-PORT=5000
+```bash
+git clone https://github.com/raviraj-01/Trip-vault.git
+cd Trip-vault
 ```
 
-Never commit `.env` files. Passwords are hashed with bcrypt before storage.
-
-## Install dependencies
+### 2. Backend setup
 
 ```bash
 cd server
 npm install
+```
 
+Create a `.env` file inside `server/`:
+
+```ini
+MONGO_URI=your_mongodb_atlas_connection_string
+JWT_SECRET=your_random_secret_string
+PORT=5000
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+Run the server:
+
+```bash
+npm run dev
+```
+
+The backend runs on `http://localhost:5000`.
+
+### 3. Frontend setup
+
+```bash
 cd ../client
 npm install
-```
-
-## Run the app
-
-Terminal 1 — backend:
-
-```bash
-cd server
 npm run dev
 ```
 
-Terminal 2 — frontend:
+The frontend runs on `http://localhost:5173`.
 
-```bash
-cd client
-npm run dev
-```
+## API Routes
 
-- Backend: `http://localhost:5000`
-- Frontend: `http://localhost:5173`
+### Auth
 
-## Week 1 — Authentication
+| Method | Route | Auth | Description |
+| --- | --- | --- | --- |
+| POST | `/api/auth/register` | No | Register a new user |
+| POST | `/api/auth/login` | No | Log in and receive a JWT |
+| GET | `/api/auth/me` | Yes | Get logged-in user info |
 
-| Method | Route                | Description                     |
-| ------ | -------------------- | ------------------------------- |
-| POST   | `/api/auth/register` | Register a new user             |
-| POST   | `/api/auth/login`    | Log in and receive a JWT        |
-| GET    | `/api/auth/me`       | Get current user (Bearer token) |
+### Trips
 
-1. Register → Login → Dashboard
-2. JWT is stored in `localStorage` and attached automatically to every API request via an axios interceptor
+| Method | Route | Auth | Description |
+| --- | --- | --- | --- |
+| POST | `/api/trips` | Yes | Create a trip |
+| GET | `/api/trips` | Yes | Get all trips for the logged-in user |
+| GET | `/api/trips/:id` | Yes | Get a single trip, owner only |
+| PUT | `/api/trips/:id` | Yes | Update a trip, owner only |
+| DELETE | `/api/trips/:id` | Yes | Delete a trip, owner only |
+| POST | `/api/trips/:id/upload` | Yes | Upload a photo and attach it to a trip |
 
-## Week 2 — Trip management
+### Users / Profiles
 
-All trip routes require a valid JWT. Users can only access their own trips.
+| Method | Route | Auth | Description |
+| --- | --- | --- | --- |
+| GET | `/api/users/:username/profile` | No | View a public profile with name, bio, and trips |
+| PUT | `/api/users/profile` | Yes | Update the logged-in user's username and bio |
 
-| Method | Route             | Description                              |
-| ------ | ----------------- | ---------------------------------------- |
-| POST   | `/api/trips`      | Create a trip (user set server-side)     |
-| GET    | `/api/trips`      | List current user's trips                |
-| GET    | `/api/trips/:id`  | Get one trip (403 if not owner)          |
-| PUT    | `/api/trips/:id`  | Update trip (403 if not owner)           |
-| DELETE | `/api/trips/:id`  | Delete trip (403 if not owner)           |
+## Testing the Auth Flow
 
-### Trip fields
+1. Register a new account at `/register`.
+2. Log in at `/login`.
+3. Go to `/dashboard`, create a trip, and upload a cover photo.
+4. Visit `/profile/:username` in an incognito window to confirm the public profile works without login.
 
-- **Required:** `title`, `destination`
-- **Optional:** `startDate`, `endDate`, `description`, `rating` (1–5)
+## Security Notes
 
-### Dashboard features
+- Passwords are hashed with bcrypt and are never stored in plain text.
+- JWT authentication is required on all private routes and verified through middleware.
+- Trip ownership is checked on every update, delete, and upload action.
+- Public profile responses expose only safe fields: name, username, bio, and trip information.
+- Email addresses, password hashes, and environment secrets are never exposed through public routes.
+- `.env` files are excluded with `.gitignore` and should never be committed.
 
-- Loading, error, empty, and loaded states
-- Trip cards with title, destination, dates, and star rating
-- Create / edit modal form (shared `TripForm` component)
-- Delete with confirmation
-- List refreshes automatically after create, edit, or delete
+## Roadmap
 
-### Test ownership isolation
+- Week 1: Auth system with JWT and bcrypt
+- Week 2: Trip CRUD
+- Week 3: Cloudinary photo uploads and public profiles
+- Week 4: Polish and deployment
 
-1. Register **User A** and create a trip. Note the trip ID from the network tab if needed.
-2. Log out, register **User B**, and log in.
-3. User B's dashboard should show an empty list (not User A's trips).
-4. If User B calls `GET /api/trips/:id` with User A's trip ID → **403 Forbidden**.
+## License
 
-## Tech stack
-
-- **Frontend:** React, Vite, React Router, Axios
-- **Backend:** Node.js, Express, Mongoose, bcryptjs, jsonwebtoken, cors, dotenv
-- **Database:** MongoDB
+Internship project for educational purposes.

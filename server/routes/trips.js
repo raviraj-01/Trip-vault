@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const Trip = require("../models/Trip");
 const authMiddleware = require("../middleware/authMiddleware");
 const asyncHandler = require("../middleware/asyncHandler");
+const upload = require("../middleware/upload");
 
 const router = express.Router();
 
@@ -66,6 +67,32 @@ router.get(
   asyncHandler(async (req, res) => {
     const trips = await Trip.find({ user: req.user._id }).sort({ createdAt: -1 });
     return res.json(trips);
+  })
+);
+
+router.post(
+  "/:id/upload",
+  loadOwnedTrip,
+  upload.ensureCloudinaryConfig,
+  upload.single("image"),
+  asyncHandler(async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ message: "Image file is required" });
+    }
+
+    const imageUrl = req.file.path || req.file.secure_url || req.file.url;
+
+    if (!imageUrl) {
+      return res.status(500).json({ message: "Image upload failed" });
+    }
+
+    req.trip.photos.push(imageUrl);
+    if (!req.trip.coverImage) {
+      req.trip.coverImage = imageUrl;
+    }
+
+    await req.trip.save();
+    return res.json(req.trip);
   })
 );
 

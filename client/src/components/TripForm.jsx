@@ -33,11 +33,35 @@ function TripForm({ trip, onSuccess, onCancel }) {
   const isEdit = Boolean(trip);
   const { values, setValues, error, setError, loading, setLoading, handleChange } =
     useForm(EMPTY_FORM);
+  const [imageFile, setImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
 
   useEffect(() => {
     setValues(toFormValues(trip));
     setError("");
+    setImageFile(null);
+    setPreviewUrl("");
   }, [trip, setValues, setError]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+
+    if (!file) {
+      setImageFile(null);
+      setPreviewUrl("");
+      return;
+    }
+
+    setImageFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -50,9 +74,20 @@ function TripForm({ trip, onSuccess, onCancel }) {
     };
 
     try {
-      await (isEdit
+      const { data: saved } = await (isEdit
         ? api.put(`/api/trips/${trip._id}`, payload)
         : api.post("/api/trips", payload));
+
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append("image", imageFile);
+        Object.entries(payload).forEach(([key, value]) => {
+          if (value !== undefined && value !== "") formData.append(key, value);
+        });
+
+        await api.post(`/api/trips/${saved._id}/upload`, formData);
+      }
+
       onSuccess();
     } catch (err) {
       setError(getApiError(err, `Failed to ${isEdit ? "update" : "create"} trip.`));
@@ -93,6 +128,18 @@ function TripForm({ trip, onSuccess, onCancel }) {
               )}
             </div>
           ))}
+
+          <label htmlFor="image">Photo</label>
+          <input
+            id="image"
+            name="image"
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+          />
+          {previewUrl && (
+            <img className="image-preview" src={previewUrl} alt="Selected trip photo preview" />
+          )}
 
           <div className="form-actions">
             <button type="button" className="btn btn-secondary" onClick={onCancel}>

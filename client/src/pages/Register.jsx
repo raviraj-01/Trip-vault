@@ -7,6 +7,7 @@ function Register() {
   const navigate = useNavigate();
   const { values, error, setError, loading, setLoading, handleChange } = useForm({
     name: "",
+    username: "",
     email: "",
     password: "",
   });
@@ -47,6 +48,19 @@ function Register() {
           onChange={handleChange}
           required
           autoComplete="name"
+        />
+
+        <label htmlFor="username">Username</label>
+        <input
+          id="username"
+          name="username"
+          type="text"
+          value={values.username}
+          onChange={handleChange}
+          required
+          minLength={3}
+          pattern="[A-Za-z0-9_]+"
+          autoComplete="username"
         />
 
         <label htmlFor="email">Email</label>
